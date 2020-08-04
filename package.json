@@ -1,0 +1,28 @@
+{
+  "name": "my_website",
+  "version": "1.0.0",
+  "description": "my pretty little website",
+  "main": "index.js",
+  "scripts": {
+    "serve": "gulp serve",
+    "compile:all": "gulp style && gulp script && echo 'smooooooth'",
+    "compile:scss": "gulp style",
+    "compile:es": "gulp script",
+    "bundle:script": "webpack --config webpack.config.js"
+  },
+  "author": "Alex Taietti",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.10.5",
+    "@babel/preset-env": "^7.11.0",
+    "browser-sync": "^2.26.12",
+    "gulp": "^4.0.2",
+    "gulp-babel": "^8.0.0",
+    "gulp-sass": "^4.1.0",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  },
+  "dependencies": {
+    "@babel/core": "^7.11.0"
+  }
+}
