@@ -1,12 +1,18 @@
 window.onload = function () {
 
-	const PARTICLES_PROPS      = 11;
-	const POINTS_SPACING       = 4;
-	const ROTATION_RADIUS      = 3;
-	const ROTATION_SLOWNESS    = 17;
+	const PARTICLES_PROPS      = 13;
+	const POINTS_SPACING       = 7;
+	const ROTATION_RADIUS      = 2;
+	const ROTATION_SLOWNESS    = 5;
 	const PARTICLES_MAX_RADIUS = 2;
 	const FONT_SIZE            = 150; //in 'px'
 	const MOUSE_RADIUS         = 10;
+	const PI2                  = Math.PI * 2;
+	const SIN                  = Math.sin;
+	const COS                  = Math.cos;
+	const MAX_PS_PER_RENDER    = 1000;
+
+	let PARTICLE_POINTER = null;
 
 	function randomInRange(min, max) {
     	return Math.random() * (max - min) + min;
@@ -82,22 +88,26 @@ window.onload = function () {
 
 		const particlesArray = new Float32Array(activePixels.length * PARTICLES_PROPS);
 
-		for(let i = 0, x = undefined, y = undefined; i < activePixels.length; i++){
+		for(let i = 0, particlePointer = 0, x = undefined, y = undefined; i < activePixels.length; i++){
 
 			x = activePixels[i] % imageData.width;
 			y = activePixels[i] / imageData.width;
 
-			particlesArray[i * PARTICLES_PROPS]      = x;    //position.x
-			particlesArray[i * PARTICLES_PROPS + 1]  = y;    //position.y
-			particlesArray[i * PARTICLES_PROPS + 2]  = randomInRange(0.5, PARTICLES_MAX_RADIUS);  //particle.radius
-			particlesArray[i * PARTICLES_PROPS + 3]  = 0;    //velocity.x
-			particlesArray[i * PARTICLES_PROPS + 4]  = 0;    //velocity.y
-			particlesArray[i * PARTICLES_PROPS + 5]  = 0;    //acceleration.x
-			particlesArray[i * PARTICLES_PROPS + 6]  = 0;    //acceleration.y
-			particlesArray[i * PARTICLES_PROPS + 7]  = x;    //targetPosition.x
-			particlesArray[i * PARTICLES_PROPS + 8]  = y;    //targetPosition.y
-			particlesArray[i * PARTICLES_PROPS + 9]  = randomInRange(0, 1000); //particle.rotationProgress
-			particlesArray[i * PARTICLES_PROPS + 10] = randomInRange(-1, 1);   //particle.direction
+			particlePointer = i * PARTICLES_PROPS;
+
+			particlesArray[particlePointer]      = x; //position.x
+			particlesArray[particlePointer + 1]  = y; //position.y
+			particlesArray[particlePointer + 2]  = randomInRange(0.5, PARTICLES_MAX_RADIUS); //particle.radius
+			particlesArray[particlePointer + 3]  = 0; //velocity.x
+			particlesArray[particlePointer + 4]  = 0; //velocity.y
+			particlesArray[particlePointer + 5]  = 0; //acceleration.x
+			particlesArray[particlePointer + 6]  = 0; //acceleration.y
+			particlesArray[particlePointer + 7]  = x; //targetPosition.x
+			particlesArray[particlePointer + 8]  = y; //targetPosition.y
+			particlesArray[particlePointer + 9]  = randomInRange(0, 1000); //particle.rotationProgress.x
+			particlesArray[particlePointer + 10] = randomInRange(0, 1000); //particle.rotationProgress.y
+			particlesArray[particlePointer + 11] = randomInRange(-1, 1);   //particle.direction.x
+			particlesArray[particlePointer + 12] = randomInRange(-1, 1);   //particle.direction.y
 
 		}
 
@@ -107,41 +117,45 @@ window.onload = function () {
 
 
 
-	function updateParticles (particlesArray) {
+	function updateParticle () {
 
-		for(let i = 0, particlePointer = null; i < particlesArray.length / PARTICLES_PROPS; i++){
+		particles[PARTICLE_POINTER + 9]  += particles[PARTICLE_POINTER + 11]; //add the direction.x value of the particle to its movement's progression x value
+		particles[PARTICLE_POINTER + 10] += particles[PARTICLE_POINTER + 12]; //add the direction.y value of the particle to its movement's progression y value
 
-			particlePointer = i * PARTICLES_PROPS;
+		particles[PARTICLE_POINTER]      = particles[PARTICLE_POINTER + 7] + COS(particles[PARTICLE_POINTER + 9] / ROTATION_SLOWNESS) * ROTATION_RADIUS;
+		particles[PARTICLE_POINTER + 1]  = particles[PARTICLE_POINTER + 8] + SIN(particles[PARTICLE_POINTER + 10] / ROTATION_SLOWNESS) * ROTATION_RADIUS;
 
-			particlesArray[particlePointer + 9] += particlesArray[particlePointer + 10]; //add the direction value of the particle to its movement's progression value
-			particlesArray[particlePointer] = particlesArray[particlePointer + 7] + Math.cos(particlesArray[particlePointer + 9] / ROTATION_SLOWNESS) * ROTATION_RADIUS;
-			particlesArray[particlePointer + 1] = particlesArray[particlePointer + 8] + Math.sin(particlesArray[particlePointer + 9] / ROTATION_SLOWNESS) * ROTATION_RADIUS;
+	}
 
-		
+	function drawParticle () {
+
+		$app.beginPath();
+		$app.arc(particles[PARTICLE_POINTER], particles[PARTICLE_POINTER + 1], particles[PARTICLE_POINTER + 2], 0, PI2);
+		$app.fill();
+
+
+	}
+
+	function renderParticles () {
+
+		$app.clearRect(0, 0, $app.canvas.width, $app.canvas.height);
+
+		for(PARTICLE_POINTER = 0; PARTICLE_POINTER < particles.length; PARTICLE_POINTER += PARTICLES_PROPS){
+
+			updateParticle();
+			drawParticle();
+
 		}
 
-	}
-
-	function renderParticles (particlesArray, context) {
-
-		context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-		for(let i = 0; i < (particlesArray.length / PARTICLES_PROPS); i++){
-			context.beginPath();
-			context.arc(particlesArray[i * PARTICLES_PROPS], particlesArray[i * PARTICLES_PROPS + 1], particlesArray[i * PARTICLES_PROPS + 2], 0, Math.PI * 2);
-			context.fill();
-		}
-
 
 	}
 
-	function animate (particlesArray, context) {
+	function animate () {
 
-		updateParticles(particlesArray);
-		renderParticles(particlesArray, context);
-		window.requestAnimationFrame(animate.bind(this, particlesArray, context));
+		renderParticles();
+		window.requestAnimationFrame(animate.bind(this));
 
 	}
-
 
 
 	const $  = document.querySelector.bind(document);
@@ -165,8 +179,7 @@ window.onload = function () {
 
 	$_app.font = `${FONT_SIZE}px serif`;
 	$_app.textAlign = "center";
-	$_app.textBaseline = "middle";	
-
+	$_app.textBaseline = "middle";
 
 
 	//begin drawing
@@ -180,10 +193,6 @@ window.onload = function () {
 
 	const particles = getParticleArrayFromImageData(imageData, POINTS_SPACING);
 
-
-
-
-
 	app.addEventListener('mousemove', function(e){
 
 		topo.x = e.clientX;
@@ -191,11 +200,7 @@ window.onload = function () {
 
 	});
 
-
-
-
-	animate(particles, $app);
-
+	animate();
 
 	//resize canvases on window resize
 	window.addEventListener('resize', resizeCanvas.bind(this, app, _app));

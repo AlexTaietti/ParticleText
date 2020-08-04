@@ -1,14 +1,19 @@
 "use strict";
 
 window.onload = function () {
-  var PARTICLES_PROPS = 11;
-  var POINTS_SPACING = 4;
-  var ROTATION_RADIUS = 3;
-  var ROTATION_SLOWNESS = 17;
+  var PARTICLES_PROPS = 13;
+  var POINTS_SPACING = 7;
+  var ROTATION_RADIUS = 2;
+  var ROTATION_SLOWNESS = 5;
   var PARTICLES_MAX_RADIUS = 2;
   var FONT_SIZE = 150; //in 'px'
 
   var MOUSE_RADIUS = 10;
+  var PI2 = Math.PI * 2;
+  var SIN = Math.sin;
+  var COS = Math.cos;
+  var MAX_PS_PER_RENDER = 1000;
+  var PARTICLE_POINTER = null;
 
   function randomInRange(min, max) {
     return Math.random() * (max - min) + min;
@@ -51,59 +56,67 @@ window.onload = function () {
 
     var particlesArray = new Float32Array(activePixels.length * PARTICLES_PROPS);
 
-    for (var _i = 0, x = undefined, y = undefined; _i < activePixels.length; _i++) {
+    for (var _i = 0, particlePointer = 0, x = undefined, y = undefined; _i < activePixels.length; _i++) {
       x = activePixels[_i] % imageData.width;
       y = activePixels[_i] / imageData.width;
-      particlesArray[_i * PARTICLES_PROPS] = x; //position.x
+      particlePointer = _i * PARTICLES_PROPS;
+      particlesArray[particlePointer] = x; //position.x
 
-      particlesArray[_i * PARTICLES_PROPS + 1] = y; //position.y
+      particlesArray[particlePointer + 1] = y; //position.y
 
-      particlesArray[_i * PARTICLES_PROPS + 2] = randomInRange(0.5, PARTICLES_MAX_RADIUS); //particle.radius
+      particlesArray[particlePointer + 2] = randomInRange(0.5, PARTICLES_MAX_RADIUS); //particle.radius
 
-      particlesArray[_i * PARTICLES_PROPS + 3] = 0; //velocity.x
+      particlesArray[particlePointer + 3] = 0; //velocity.x
 
-      particlesArray[_i * PARTICLES_PROPS + 4] = 0; //velocity.y
+      particlesArray[particlePointer + 4] = 0; //velocity.y
 
-      particlesArray[_i * PARTICLES_PROPS + 5] = 0; //acceleration.x
+      particlesArray[particlePointer + 5] = 0; //acceleration.x
 
-      particlesArray[_i * PARTICLES_PROPS + 6] = 0; //acceleration.y
+      particlesArray[particlePointer + 6] = 0; //acceleration.y
 
-      particlesArray[_i * PARTICLES_PROPS + 7] = x; //targetPosition.x
+      particlesArray[particlePointer + 7] = x; //targetPosition.x
 
-      particlesArray[_i * PARTICLES_PROPS + 8] = y; //targetPosition.y
+      particlesArray[particlePointer + 8] = y; //targetPosition.y
 
-      particlesArray[_i * PARTICLES_PROPS + 9] = randomInRange(0, 1000); //particle.rotationProgress
+      particlesArray[particlePointer + 9] = randomInRange(0, 1000); //particle.rotationProgress.x
 
-      particlesArray[_i * PARTICLES_PROPS + 10] = randomInRange(-1, 1); //particle.direction
+      particlesArray[particlePointer + 10] = randomInRange(0, 1000); //particle.rotationProgress.y
+
+      particlesArray[particlePointer + 11] = randomInRange(-1, 1); //particle.direction.x
+
+      particlesArray[particlePointer + 12] = randomInRange(-1, 1); //particle.direction.y
     }
 
     return particlesArray;
   }
 
-  function updateParticles(particlesArray) {
-    for (var i = 0, particlePointer = null; i < particlesArray.length / PARTICLES_PROPS; i++) {
-      particlePointer = i * PARTICLES_PROPS;
-      particlesArray[particlePointer + 9] += particlesArray[particlePointer + 10]; //add the direction value of the particle to its movement's progression value
+  function updateParticle() {
+    particles[PARTICLE_POINTER + 9] += particles[PARTICLE_POINTER + 11]; //add the direction.x value of the particle to its movement's progression x value
 
-      particlesArray[particlePointer] = particlesArray[particlePointer + 7] + Math.cos(particlesArray[particlePointer + 9] / ROTATION_SLOWNESS) * ROTATION_RADIUS;
-      particlesArray[particlePointer + 1] = particlesArray[particlePointer + 8] + Math.sin(particlesArray[particlePointer + 9] / ROTATION_SLOWNESS) * ROTATION_RADIUS;
+    particles[PARTICLE_POINTER + 10] += particles[PARTICLE_POINTER + 12]; //add the direction.y value of the particle to its movement's progression y value
+
+    particles[PARTICLE_POINTER] = particles[PARTICLE_POINTER + 7] + COS(particles[PARTICLE_POINTER + 9] / ROTATION_SLOWNESS) * ROTATION_RADIUS;
+    particles[PARTICLE_POINTER + 1] = particles[PARTICLE_POINTER + 8] + SIN(particles[PARTICLE_POINTER + 10] / ROTATION_SLOWNESS) * ROTATION_RADIUS;
+  }
+
+  function drawParticle() {
+    $app.beginPath();
+    $app.arc(particles[PARTICLE_POINTER], particles[PARTICLE_POINTER + 1], particles[PARTICLE_POINTER + 2], 0, PI2);
+    $app.fill();
+  }
+
+  function renderParticles() {
+    $app.clearRect(0, 0, $app.canvas.width, $app.canvas.height);
+
+    for (PARTICLE_POINTER = 0; PARTICLE_POINTER < particles.length; PARTICLE_POINTER += PARTICLES_PROPS) {
+      updateParticle();
+      drawParticle();
     }
   }
 
-  function renderParticles(particlesArray, context) {
-    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-
-    for (var i = 0; i < particlesArray.length / PARTICLES_PROPS; i++) {
-      context.beginPath();
-      context.arc(particlesArray[i * PARTICLES_PROPS], particlesArray[i * PARTICLES_PROPS + 1], particlesArray[i * PARTICLES_PROPS + 2], 0, Math.PI * 2);
-      context.fill();
-    }
-  }
-
-  function animate(particlesArray, context) {
-    updateParticles(particlesArray);
-    renderParticles(particlesArray, context);
-    window.requestAnimationFrame(animate.bind(this, particlesArray, context));
+  function animate() {
+    renderParticles();
+    window.requestAnimationFrame(animate.bind(this));
   }
 
   var $ = document.querySelector.bind(document);
@@ -134,7 +147,7 @@ window.onload = function () {
     topo.x = e.clientX;
     topo.y = e.clientY;
   });
-  animate(particles, $app); //resize canvases on window resize
+  animate(); //resize canvases on window resize
 
   window.addEventListener('resize', resizeCanvas.bind(this, app, _app));
   console.log("Particles rendering: ".concat(particles.length / PARTICLES_PROPS));
