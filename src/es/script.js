@@ -186,7 +186,7 @@ window.onload = function () {
 	$_app.beginPath();
 
 	$_app.fillText("Hello, I'm Alex!", $app.canvas.width/2, $app.canvas.height/2);
-	
+
 	$_app.closePath();
 
 	let imageData = $_app.getImageData(0, 0, $_app.canvas.width, $_app.canvas.height);
