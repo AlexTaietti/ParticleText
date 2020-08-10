@@ -3,8 +3,6 @@ window.onload = function () {
 	const PI2                  = Math.PI * 2;
 	const SIN                  = Math.sin;
 	const COS                  = Math.cos;
-	const STRING               = "Hello, Codepen! ❤︎";
-
 
 	function randomInRange(min, max) { return Math.random() * (max - min) + min; }
 
@@ -43,7 +41,7 @@ window.onload = function () {
 						particleProps: 9, //should not be changed!!!
 
 						//particle shape
-						pointSpacing      : 7,
+						pointSpacing      : 5,
 						particleMaxRadius:  2,
 
 						//particle motion
@@ -53,24 +51,20 @@ window.onload = function () {
 					},
 
 					text: {
-
-						fontSize: 100,
+						fontSize: 150,
 						fontFamily: 'serif',
-						position: { x: $referenceCanvas.canvas.width / 2, y: $referenceCanvas.canvas.height / 2 }
-
+						padding: 50
 					}
 
 			};
 
 			this.defaults = mergeObjects(_defaults, options, true);
-
 			this.context = canvas.getContext('2d');
-
 			this.text = new Text(string, $referenceCanvas, this.defaults.text).initialise();
-
 			this.particles = getParticlesFromImage(this.text.image, this.defaults.particles);
 			this.particlePointer = null;
 
+			//will hold the ID frame (used to toggle the play-state of the animation)
 			this.frameID = undefined;
 
 		}
@@ -115,8 +109,6 @@ window.onload = function () {
 
 	}
 
-
-
 	class Text {
 
 		constructor (string, context, options) {
@@ -125,51 +117,68 @@ window.onload = function () {
 			this.context    = context;
 			this.fontFamily = options.fontFamily;
 			this.fontSize   = options.fontSize;
-			this.font       = `${this.fontSize}px ${this.fontFamily}`;
-			this.position   = options.position;
+			this.font       = this.context.font = `${this.fontSize}px ${this.fontFamily}`;
+			this.padding    = options.padding;
 			this.image      = undefined;
+
+			//set default baseline in canvas
+			this.context.textBaseline = 'top';
+			this.context.textAlign    = 'center';
 
 		}
 
+		renderFormattedString () {
+
+			const words = this.string.split(" "), finalText = [];
+
+			let line = "", x, y, i;
+
+	    for (i = 0; i < words.length; i++) {
+
+				if (this.context.measureText(line + words[i] + " ").width >= this.context.canvas.width - this.padding * 2) {
+	        finalText.push(line);
+	        line = "";
+	      }
+
+				line += words[i] + " ";
+
+			}
+
+			finalText.push(line);
+
+			const totalTextHeight = this.fontSize * finalText.length;
+
+	    for (i = 0; i < finalText.length; i++) {
+	      this.context.fillText(finalText[i], this.context.canvas.width / 2, (this.context.canvas.height / 2 - totalTextHeight / 2) + this.fontSize * i);
+	    }
+
+			this.image = this.context.getImageData(0, 0, this.context.canvas.width, this.context.canvas.height);
+
+	  }
+
 		initialise () {
-			this.render();
+			this.renderFormattedString();
 			return this;
 		}
 
 		update (string) {
 			this.string = string;
-			this.render();
+			this.renderFormattedString();
 			return this;
 		}
 
 		setFontSize (fontSize) {
 			this.fontSize = fontSize;
-			this.font = `${ this.fontSize }px ${ this.fontFamily }`
+			this.font = this.context.font = `${ this.fontSize }px ${ this.fontFamily }`
 			return this;
 		}
 
 		setFontFamily (fontFamily) {
 			this.fontFamily = fontFamily;
-			this.font = `${ this.fontSize }px ${ this.fontFamily }`
+			this.font = this.context.font = `${ this.fontSize }px ${ this.fontFamily }`
 			return this;
 		}
 
-		setTextProps () {
-			this.context.font = `${this.fontSize}px ${this.fontFamily}`
-			this.context.textAlign = "center";
-			this.context.textBaseline = "middle";
-		}
-
-		render () {
-
-			this.setTextProps();
-			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-			this.context.beginPath();
-			this.context.fillText(this.string, this.position.x, this.position.y);
-
-			this.image = this.context.getImageData(0, 0, this.context.canvas.width, this.context.canvas.height);
-
-		}
 
 	}
 
@@ -260,19 +269,20 @@ window.onload = function () {
 
 	const textContainer = document.getElementById('text-container');
 
+	const STRING = "Hello, Codepen! ❤︎";
+
 	const T = new ParticleText(STRING, textContainer, {
 
 		particles: {
 			pointSpacing: 5,
-			particleMaxRadius: 1.5,
-			revolutionRadius: 1.5,
-			revolutionSlowness: 6
+			particleMaxRadius: 2,
+			revolutionRadius: 2,
+			revolutionSlowness: 5
 		},
 
-		text:{
-			fontSize: 90,
-			fontFamily: 'serif',
-			position: { x:500, y: 300 }
+		text: {
+			fontSize: 150,
+			fontFamily: 'serif'
 		}
 
 	});
