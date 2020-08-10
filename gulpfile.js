@@ -1,7 +1,7 @@
 const gulp  = require('gulp');
 const BS    = require('browser-sync').create();
 const sass  = require('gulp-sass');
-const babel = require('gulp-babel'); 
+const babel = require('gulp-babel');
 
 function style () {
 
@@ -15,7 +15,7 @@ function style () {
 function script () {
 
 	return gulp.src('./src/es/*.js')
-		.pipe(babel({ presets: ['@babel/env'] }))
+		.pipe(babel({ plugins: ['@babel/plugin-proposal-class-properties', '@babel/plugin-transform-destructuring'], presets: ['@babel/env'] }))
 		.pipe(gulp.dest('./tmp/js'));
 
 }
@@ -28,7 +28,7 @@ gulp.task('serve', function (){
 			baseDir: './dist/',
 			index: 'index.html'
 		}
-	
+
 	});
 
 	gulp.watch('./src/scss/*.scss', style);
