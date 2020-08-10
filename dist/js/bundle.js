@@ -107,6 +107,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 window.onload = function () {
+  var PARTICLE_PROPS = 13;
   var PI2 = Math.PI * 2;
   var SIN = Math.sin;
   var COS = Math.cos;
@@ -154,9 +155,6 @@ window.onload = function () {
       var $referenceCanvas = createCanvasFrom(canvas);
       var _defaults = {
         particles: {
-          //general
-          particleProps: 9,
-          //should not be changed!!!
           //particle shape
           pointSpacing: 5,
           particleMaxRadius: 2,
@@ -200,6 +198,7 @@ window.onload = function () {
     }, {
       key: "drawCurrentParticle",
       value: function drawCurrentParticle() {
+        this.context.fillStyle = "rgba(".concat(this.particles[this.particlePointer + 9], ", ").concat(this.particles[this.particlePointer + 10], ", ").concat(this.particles[this.particlePointer + 11], ", ").concat(this.particles[this.particlePointer + 12], ")");
         this.context.beginPath();
         this.context.arc(this.particles[this.particlePointer], this.particles[this.particlePointer + 1], this.particles[this.particlePointer + 8], 0, PI2);
         this.context.fill();
@@ -209,7 +208,7 @@ window.onload = function () {
       value: function renderParticles(particlesOptions) {
         this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 
-        for (this.particlePointer = 0; this.particlePointer < this.particles.length; this.particlePointer += particlesOptions.particleProps) {
+        for (this.particlePointer = 0; this.particlePointer < this.particles.length; this.particlePointer += PARTICLE_PROPS) {
           this.updateCurrentParticle(particlesOptions);
           this.drawCurrentParticle();
         }
@@ -322,8 +321,14 @@ window.onload = function () {
       if (imageData.data[i]) {
         counter++;
 
-        if (counter % step === 0 && Math.random() > 0.5) {
-          alphaPixels.push((i - 3) / 4);
+        if ((i - 3) % 4 === 0 && counter % step === 0 && Math.random() > 0.5) {
+          alphaPixels.push({
+            r: imageData.data[i - 3],
+            g: imageData.data[i - 2],
+            b: imageData.data[i - 1],
+            alpha: imageData.data[i],
+            pixelIndex: (i - 3) / 4
+          });
         }
       }
     }
@@ -332,16 +337,15 @@ window.onload = function () {
   }
 
   function getParticlesFromImage(imageData, _ref2) {
-    var particleProps = _ref2.particleProps,
-        particleMaxRadius = _ref2.particleMaxRadius,
+    var particleMaxRadius = _ref2.particleMaxRadius,
         pointSpacing = _ref2.pointSpacing;
     var alphaPixels = getAlphaPixelsFromImage(imageData, pointSpacing);
-    var particlesArray = new Float32Array(alphaPixels.length * particleProps);
+    var particlesArray = new Float32Array(alphaPixels.length * PARTICLE_PROPS);
 
     for (var i = 0, particlePointer = 0, x = undefined, y = undefined; i < alphaPixels.length; i++) {
-      x = alphaPixels[i] % imageData.width;
-      y = alphaPixels[i] / imageData.width;
-      particlePointer = i * particleProps;
+      x = alphaPixels[i].pixelIndex % imageData.width;
+      y = alphaPixels[i].pixelIndex / imageData.width;
+      particlePointer = i * PARTICLE_PROPS;
       particlesArray[particlePointer++] = x; //position.x ========= +0 (aka particlePointer's current value)
 
       particlesArray[particlePointer++] = y; //position.y ========= +1
@@ -358,7 +362,16 @@ window.onload = function () {
 
       particlesArray[particlePointer++] = randomInRange(-1, 1); //particle.direction.y ================ +7
 
-      particlesArray[particlePointer] = randomInRange(0.5, particleMaxRadius); //particle.radius === +8
+      particlesArray[particlePointer++] = randomInRange(0.5, particleMaxRadius); //particle.radius === +8
+      //colorRGBA values for each particle
+
+      particlesArray[particlePointer++] = alphaPixels[i].r; //+9
+
+      particlesArray[particlePointer++] = alphaPixels[i].g; //+10
+
+      particlesArray[particlePointer++] = alphaPixels[i].b; //+11
+
+      particlesArray[particlePointer] = alphaPixels[i].alpha; //+12
     }
 
     return particlesArray;
@@ -374,12 +387,12 @@ window.onload = function () {
       revolutionSlowness: 5
     },
     text: {
-      fontSize: 150,
+      fontSize: 100,
       fontFamily: 'serif'
     }
   });
   T.animate();
-  console.log("Particles rendering: ".concat(T.particles.length / T.defaults.particles.particleProps));
+  console.log("Particles rendering: ".concat(T.particles.length / PARTICLE_PROPS));
 };
 
 /***/ })

@@ -1,8 +1,9 @@
 window.onload = function () {
 
-	const PI2                  = Math.PI * 2;
-	const SIN                  = Math.sin;
-	const COS                  = Math.cos;
+	const PARTICLE_PROPS = 13;
+	const PI2            = Math.PI * 2;
+	const SIN            = Math.sin;
+	const COS            = Math.cos;
 
 	function randomInRange(min, max) { return Math.random() * (max - min) + min; }
 
@@ -35,26 +36,25 @@ window.onload = function () {
 
 			const _defaults = {
 
-					particles: {
+				particles: {
 
-						//general
-						particleProps: 9, //should not be changed!!!
+					//particle shape
+					pointSpacing      : 5,
+					particleMaxRadius:  2,
 
-						//particle shape
-						pointSpacing      : 5,
-						particleMaxRadius:  2,
+					//particle motion
+					revolutionRadius  : 2,
+					revolutionSlowness: 5
 
-						//particle motion
-						revolutionRadius  : 2,
-						revolutionSlowness: 5
+				},
 
-					},
+				text: {
 
-					text: {
-						fontSize: 150,
-						fontFamily: 'serif',
-						padding: 50
-					}
+					fontSize: 150,
+					fontFamily: 'serif',
+					padding: 50
+
+				}
 
 			};
 
@@ -85,6 +85,7 @@ window.onload = function () {
 		}
 
 		drawCurrentParticle () {
+			this.context.fillStyle = `rgba(${this.particles[this.particlePointer + 9]}, ${this.particles[this.particlePointer + 10]}, ${this.particles[this.particlePointer + 11]}, ${this.particles[this.particlePointer + 12]})`;
 			this.context.beginPath();
 			this.context.arc(this.particles[this.particlePointer], this.particles[this.particlePointer + 1], this.particles[this.particlePointer + 8], 0, PI2);
 			this.context.fill();
@@ -94,7 +95,7 @@ window.onload = function () {
 
 			this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 
-			for(this.particlePointer = 0; this.particlePointer < this.particles.length; this.particlePointer += particlesOptions.particleProps){
+			for(this.particlePointer = 0; this.particlePointer < this.particles.length; this.particlePointer += PARTICLE_PROPS){
 				this.updateCurrentParticle(particlesOptions);
 				this.drawCurrentParticle();
 			}
@@ -224,9 +225,15 @@ window.onload = function () {
 
 				counter++;
 
-				if(counter % step === 0 && Math.random() > 0.5) {
+				if( (i - 3) % 4 === 0 && counter % step === 0 && Math.random() > 0.5) {
 
-					alphaPixels.push( (i - 3) / 4 );
+					alphaPixels.push({
+							r:     		   imageData.data[i - 3],
+							g:           imageData.data[i - 2],
+							b:           imageData.data[i - 1],
+							alpha:       imageData.data[i],
+							pixelIndex: (i - 3) / 4
+					});
 
 				}
 
@@ -238,18 +245,18 @@ window.onload = function () {
 
 	}
 
-	function getParticlesFromImage (imageData, { particleProps, particleMaxRadius, pointSpacing }) {
+	function getParticlesFromImage (imageData, { particleMaxRadius, pointSpacing }) {
 
 		const alphaPixels = getAlphaPixelsFromImage(imageData, pointSpacing);
 
-		const particlesArray = new Float32Array(alphaPixels.length * particleProps);
+		const particlesArray = new Float32Array(alphaPixels.length * PARTICLE_PROPS);
 
 		for(let i = 0, particlePointer = 0, x = undefined, y = undefined; i < alphaPixels.length; i++){
 
-			x = alphaPixels[i] % imageData.width;
-			y = alphaPixels[i] / imageData.width;
+			x = alphaPixels[i].pixelIndex % imageData.width;
+			y = alphaPixels[i].pixelIndex / imageData.width;
 
-			particlePointer = i * particleProps;
+			particlePointer = i * PARTICLE_PROPS;
 
 			particlesArray[particlePointer++] = x; //position.x ========= +0 (aka particlePointer's current value)
 			particlesArray[particlePointer++] = y; //position.y ========= +1
@@ -259,7 +266,13 @@ window.onload = function () {
 			particlesArray[particlePointer++] = randomInRange(0, 1000); //particle.rotationProgress.y ========= +5
 			particlesArray[particlePointer++] = randomInRange(-1, 1);   //particle.direction.x ================ +6
 			particlesArray[particlePointer++] = randomInRange(-1, 1);   //particle.direction.y ================ +7
-			particlesArray[particlePointer]   = randomInRange(0.5, particleMaxRadius); //particle.radius === +8
+			particlesArray[particlePointer++] = randomInRange(0.5, particleMaxRadius); //particle.radius === +8
+
+			//colorRGBA values for each particle
+			particlesArray[particlePointer++] = alphaPixels[i].r; //+9
+			particlesArray[particlePointer++] = alphaPixels[i].g; //+10
+			particlesArray[particlePointer++] = alphaPixels[i].b;//+11
+			particlesArray[particlePointer]   = alphaPixels[i].alpha;//+12
 
 		}
 
@@ -281,7 +294,7 @@ window.onload = function () {
 		},
 
 		text: {
-			fontSize: 150,
+			fontSize: 100,
 			fontFamily: 'serif'
 		}
 
@@ -289,6 +302,6 @@ window.onload = function () {
 
 	T.animate();
 
-	console.log(`Particles rendering: ${ T.particles.length / T.defaults.particles.particleProps }`);
+	console.log(`Particles rendering: ${ T.particles.length / PARTICLE_PROPS }`);
 
 };
