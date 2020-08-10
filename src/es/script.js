@@ -263,7 +263,7 @@ window.onload = function () {
 	const T = new ParticleText(STRING, textContainer, {
 
 		particles: {
-			pointSpacing: 4,
+			pointSpacing: 5,
 			particleMaxRadius: 1.5,
 			revolutionRadius: 1.5,
 			revolutionSlowness: 6
