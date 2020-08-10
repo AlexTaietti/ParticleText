@@ -5,25 +5,19 @@ window.onload = function () {
 	const ROTATION_RADIUS      = 2;
 	const ROTATION_SLOWNESS    = 5;
 	const PARTICLES_MAX_RADIUS = 2;
-	const FONT_SIZE            = 150; //in 'px'
+	const FONT_SIZE            = 100; //in 'px'
 	const MOUSE_RADIUS         = 10;
 	const PI2                  = Math.PI * 2;
 	const SIN                  = Math.sin;
 	const COS                  = Math.cos;
 	const MAX_PS_PER_RENDER    = 1000;
+	const STRING               = "Hello, Codepen! ❤︎";
 
 	let PARTICLE_POINTER = null;
 
-	function randomInRange(min, max) {
-    	return Math.random() * (max - min) + min;
-  	}
+	function randomInRange(min, max) { return Math.random() * (max - min) + min; }
 
-
-  	function distanceBetweenPoints (p1x, p1y, p2x, p2y) {
-
-		return Math.sqrt( ( (p1x - p2x) * (p1x - p2x) ) + (p1y - p2y) * (p1y - p2y) );
-
-	}
+  function distanceBetweenPoints (p1x, p1y, p2x, p2y) { return Math.sqrt( ( (p1x - p2x) * (p1x - p2x) ) + (p1y - p2y) * (p1y - p2y) ); }
 
 	//get the document's height cross browser reliably
 	function getDocumentHeight() {
@@ -55,7 +49,7 @@ window.onload = function () {
 
 	}
 
-	function resizeCanvas (canvas1, canvas2, canvasn){
+	function resizeCanvas (canvas1, canvas2, canvasN){
 
 		for(let i = 0; i < arguments.length; i++){
 			arguments[i].width  = getDocumentWidth();
@@ -185,7 +179,7 @@ window.onload = function () {
 	//begin drawing
 	$_app.beginPath();
 
-	$_app.fillText("Hello, I'm Alex!", $app.canvas.width/2, $app.canvas.height/2);
+	$_app.fillText(STRING, $app.canvas.width/2, $app.canvas.height/2);
 
 	$_app.closePath();
 

@@ -6,13 +6,14 @@ window.onload = function () {
   var ROTATION_RADIUS = 2;
   var ROTATION_SLOWNESS = 5;
   var PARTICLES_MAX_RADIUS = 2;
-  var FONT_SIZE = 150; //in 'px'
+  var FONT_SIZE = 100; //in 'px'
 
   var MOUSE_RADIUS = 10;
   var PI2 = Math.PI * 2;
   var SIN = Math.sin;
   var COS = Math.cos;
   var MAX_PS_PER_RENDER = 1000;
+  var STRING = "Hello, Codepen! ❤︎";
   var PARTICLE_POINTER = null;
 
   function randomInRange(min, max) {
@@ -33,7 +34,7 @@ window.onload = function () {
     return Math.max(document.documentElement.clientWidth, document.body.scrollWidth, document.documentElement.scrollWidth, document.body.offsetWidth, document.documentElement.offsetWidth);
   }
 
-  function resizeCanvas(canvas1, canvas2, canvasn) {
+  function resizeCanvas(canvas1, canvas2, canvasN) {
     for (var i = 0; i < arguments.length; i++) {
       arguments[i].width = getDocumentWidth();
       arguments[i].height = getDocumentHeight();
@@ -139,7 +140,7 @@ window.onload = function () {
   $_app.textBaseline = "middle"; //begin drawing
 
   $_app.beginPath();
-  $_app.fillText("Hello, I'm Alex!", $app.canvas.width / 2, $app.canvas.height / 2);
+  $_app.fillText(STRING, $app.canvas.width / 2, $app.canvas.height / 2);
   $_app.closePath();
   var imageData = $_app.getImageData(0, 0, $_app.canvas.width, $_app.canvas.height);
   var particles = getParticleArrayFromImageData(imageData, POINTS_SPACING);
