@@ -9,6 +9,7 @@ body, html {
   position: relative; }
 
 #text-container {
+  font-family: 'Rock Salt';
   position: relative;
   display: block;
   width: 100%;
