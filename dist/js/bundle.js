@@ -107,23 +107,33 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 window.onload = function () {
-  //here are some untouchable things
-  var PARTICLE_PROPS = 13; // <---- especially this guy
-
   var PI2 = Math.PI * 2;
   var SIN = Math.sin;
-  var COS = Math.cos; //some utility functions
+  var COS = Math.cos;
+  /*		/$$$$$$                                      /$$$$$$$                                      /$$$$$$$$ /$$           /$$
+  		/$$__  $$                                    | $$__  $$                                    | $$_____/| $$          | $$
+  		| $$  \__/ /$$   /$$  /$$$$$$   /$$$$$$       | $$  \ $$ /$$   /$$  /$$$$$$   /$$$$$$       | $$      | $$ /$$   /$$| $$
+  		|  $$$$$$ | $$  | $$ /$$__  $$ |____  $$      | $$  | $$| $$  | $$ /$$__  $$ |____  $$      | $$$$$   | $$| $$  | $$| $$
+  		\____  $$| $$  | $$| $$  \ $$  /$$$$$$$      | $$  | $$| $$  | $$| $$  \ $$  /$$$$$$$      | $$__/   | $$| $$  | $$|__/
+  		/$$  \ $$| $$  | $$| $$  | $$ /$$__  $$      | $$  | $$| $$  | $$| $$  | $$ /$$__  $$      | $$      | $$| $$  | $$
+  		|  $$$$$$/|  $$$$$$/| $$$$$$$/|  $$$$$$$      | $$$$$$$/|  $$$$$$/| $$$$$$$/|  $$$$$$$      | $$      | $$|  $$$$$$$ /$$
+  		\______/  \______/ | $$____/  \_______/      |_______/  \______/ | $$____/  \_______/      |__/      |__/ \____  $$|__/
+  									| $$                                          | $$                                     /$$  | $$
+  									| $$                                          | $$                                    |  $$$$$$/
+  									|__/                                          |__/                                     \______/     */
+  ///////////////////////
+  // UTILITY FUNCTIONS //
+  ///////////////////////
+  //some utility functions
 
   function randomInRange(min, max) {
     return Math.random() * (max - min) + min;
-  }
+  } //I'll leave this here just in case anyone wants to play with the particles rgb channels
+  //(P-P-PROTIP: setting the blue and red channels with this function makes for a cool palette)
+
 
   function randomIntInRange(min, max) {
     return ~~(Math.random() * (max - min) + min);
-  }
-
-  function distanceBetweenPoints(p1x, p1y, p2x, p2y) {
-    return Math.sqrt((p1x - p2x) * (p1x - p2x) + (p1y - p2y) * (p1y - p2y));
   }
 
   function mergeObjects(target, object) {
@@ -148,6 +158,110 @@ window.onload = function () {
     return array[~~(Math.random() * array.length)];
   }
 
+  function createSupaDupaGradient(context) {
+    var canvas = context.canvas,
+        gradient = context.createRadialGradient(canvas.width / 2, canvas.height / 2, canvas.width / 5, canvas.width / 2, canvas.height / 2, canvas.width * 0.7);
+    gradient.addColorStop(0, '#550e8f');
+    gradient.addColorStop(1, '#101010');
+    return gradient;
+  } //create a canvas with the same size of a given one and return its context
+
+
+  function createCanvasFrom(canvas) {
+    var referenceCanvas = document.createElement('canvas');
+    var $referenceCanvas = referenceCanvas.getContext('2d');
+    $referenceCanvas.canvas.width = referenceCanvas.width = canvas.width;
+    $referenceCanvas.canvas.height = referenceCanvas.height = canvas.height;
+    return $referenceCanvas;
+  } //create a new canvas fitting it inside a parent container specified by the user
+
+
+  function createFitCanvas(element) {
+    var canvas = document.createElement('canvas');
+    var $canvas = canvas.getContext('2d');
+    $canvas.canvas.width = canvas.width = element.offsetWidth;
+    $canvas.canvas.height = canvas.height = element.offsetHeight;
+    canvas.style.position = 'absolute'; //so it fits snuggly in its container
+
+    element.append(canvas);
+    return canvas;
+  } //get active pixels from the canvas we are rendering the text to
+
+
+  function getAlphaPixelsFromImage(imageData) {
+    var step = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 2;
+    var alphaPixels = [];
+
+    for (var i = 0, counter = 0; i < imageData.data.length; i++) {
+      if (imageData.data[i]) {
+        counter++;
+
+        if ((i - 3) % 4 === 0 && counter % step === 0 && Math.random() > 0.5) {
+          alphaPixels.push({
+            r: imageData.data[i - 3],
+            g: imageData.data[i - 2],
+            b: imageData.data[i - 1],
+            alpha: imageData.data[i],
+            pixelIndex: (i - 3) / 4
+          });
+        }
+      }
+    }
+
+    return alphaPixels;
+  } //get an array of Floats containing the particle data we are etracting from our render text
+
+
+  function getParticlesFromImage(imageData, _ref) {
+    var particleProps = _ref.particleProps,
+        particleMaxRadius = _ref.particleMaxRadius,
+        pointSpacing = _ref.pointSpacing,
+        palette = _ref.palette;
+    var alphaPixels = getAlphaPixelsFromImage(imageData, pointSpacing);
+    var particlesArray = new Float32Array(alphaPixels.length * particleProps);
+
+    for (var i = 0, particlePointer = 0, x = undefined, y = undefined, color = undefined; i < alphaPixels.length; i++) {
+      if (palette) {
+        color = chooseRandomFrom(palette);
+      }
+
+      x = alphaPixels[i].pixelIndex % imageData.width;
+      y = alphaPixels[i].pixelIndex / imageData.width;
+      particlePointer = i * particleProps;
+      particlesArray[particlePointer++] = x; //position.x ========= +0 (aka particlePointer's current value, aka a particle's address in memory)
+
+      particlesArray[particlePointer++] = y; //position.y ========= +1
+
+      particlesArray[particlePointer++] = x; //targetPosition.x === +2
+
+      particlesArray[particlePointer++] = y; //targetPosition.y === +3
+
+      particlesArray[particlePointer++] = randomInRange(0, 1000); //particle.rotationProgress.x ====== +4
+
+      particlesArray[particlePointer++] = randomInRange(0, 1000); //particle.rotationProgress.y ====== +5
+
+      particlesArray[particlePointer++] = randomInRange(-1, 1); //particle.direction.x ============= +6
+
+      particlesArray[particlePointer++] = randomInRange(-1, 1); //particle.direction.y ============= +7
+
+      particlesArray[particlePointer++] = randomInRange(0.5, particleMaxRadius); //particle.radius === +8
+      //colorRGBA values for each particle
+
+      particlesArray[particlePointer++] = palette ? color["r"] : alphaPixels[i].r; //particles's color's "red" channel ===== +9
+
+      particlesArray[particlePointer++] = palette ? color["g"] : alphaPixels[i].g; //particles's color's "green" channel === +10
+
+      particlesArray[particlePointer++] = palette ? color["b"] : alphaPixels[i].b; //particles's color's "blue" channel ==== +11
+
+      particlesArray[particlePointer] = alphaPixels[i].alpha; //particles's color's "alpha" channel ====================== +12
+    }
+
+    return particlesArray;
+  } /////////////
+  // CLASSES //
+  /////////////
+
+
   var ParticleText = /*#__PURE__*/function () {
     function ParticleText(string, element) {
       var _this = this;
@@ -157,12 +271,14 @@ window.onload = function () {
       _classCallCheck(this, ParticleText);
 
       _defineProperty(this, "animate", function () {
-        _this.renderParticles(_this.defaults.particles);
+        _this.renderParticles(_this.settings.particles);
 
         _this.frameID = window.requestAnimationFrame(_this.animate);
       });
 
+      var _particleProps = 13; //<----- you shouldn't touch this guy right here, but I ain't your dad, so if you really want to, go ahead and change it
       //setting up the canvases needed for ParticleText
+
       var canvas = createFitCanvas(element);
       var $referenceCanvas = createCanvasFrom(canvas);
       var _defaults = {
@@ -179,6 +295,7 @@ window.onload = function () {
           //only update half of the particles each cycle, repaint every other cycle
           enhancedRendering: true
         },
+        //text default settings
         text: {
           fontSize: 150,
           fontFamily: 'serif',
@@ -187,7 +304,10 @@ window.onload = function () {
         }
       }; //deep merge user supplied arguments and the defaults
 
-      this.defaults = mergeObjects(_defaults, options, true); //reference to the parent element of the rendering canvas
+      this.settings = mergeObjects(_defaults, options, true); //I am adding this property later simply because I don't want the user to change it easily
+      //(If you are a professional reading this, how would you go about doing this in a cleaner way?? Comment below to let me know, it would be greatly appreciated!)
+
+      this.settings.particles.particleProps = _particleProps; //reference to the parent element of the rendering canvas
 
       this.parent = element; //the actual canvas element we are using to display the animation on the pahe
 
@@ -195,13 +315,13 @@ window.onload = function () {
 
       this.context = canvas.getContext('2d'); //create a new instance of Text passing all of the text properties
 
-      this.text = new Text(string, $referenceCanvas, this.defaults.text).initialise(); //extract our particles from the canvas stored in memory that we are using to draw our text reference
+      this.text = new Text(string, $referenceCanvas, this.settings.text).initialise(); //extract our particles from the canvas stored in memory that we are using to draw our text reference
 
-      this.particles = getParticlesFromImage(this.text.image, this.defaults.particles); //create the pointer that will let us navigate through the particle array (which is a Float32Array)
+      this.particles = getParticlesFromImage(this.text.image, this.settings.particles); //create the pointer that will let us navigate through the particle array (which is a Float32Array)
 
       this.particlePointer = null; //I am admittedly being a bit cheeky here... With enhancedRendering we are only updating half of the particles each cycle and rendering all of them at once every other cycle
 
-      this.enhancedRendering = this.defaults.particles.enhancedRendering ? {
+      this.enhancedRendering = this.settings.particles.enhancedRendering ? {
         lastUpdated: 0,
         half: Math.floor(this.particles.length / 2),
         ready: false
@@ -217,14 +337,14 @@ window.onload = function () {
       key: "updateText",
       value: function updateText(string) {
         this.text.update(string);
-        this.particles = getParticlesFromImage(this.text.image, this.defaults.particles);
+        this.particles = getParticlesFromImage(this.text.image, this.settings.particles);
       } //update a single particle
 
     }, {
       key: "updateCurrentParticle",
-      value: function updateCurrentParticle(_ref) {
-        var revolutionSlowness = _ref.revolutionSlowness,
-            revolutionRadius = _ref.revolutionRadius;
+      value: function updateCurrentParticle(_ref2) {
+        var revolutionSlowness = _ref2.revolutionSlowness,
+            revolutionRadius = _ref2.revolutionRadius;
         this.particles[this.particlePointer + 4] += this.particles[this.particlePointer + 6]; //add the direction.x value of the particle to its movement's progression x value
 
         this.particles[this.particlePointer + 5] += this.particles[this.particlePointer + 7]; //add the direction.y value of the particle to its movement's progression y value
@@ -245,8 +365,8 @@ window.onload = function () {
 
     }, {
       key: "prepareCanvas",
-      value: function prepareCanvas(_ref2) {
-        var background = _ref2.background;
+      value: function prepareCanvas(_ref3) {
+        var background = _ref3.background;
 
         if (background) {
           this.context.fillStyle = background;
@@ -254,24 +374,29 @@ window.onload = function () {
         } else {
           this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
         }
+      }
+    }, {
+      key: "setBackground",
+      value: function setBackground(background) {
+        this.settings.particles.background = background;
       } //the heart of the rendering process
 
     }, {
       key: "renderParticles",
-      value: function renderParticles(particlesOptions) {
+      value: function renderParticles(particleSettings) {
         if (this.enchancedRendering) {
           if (this.enchancedRendering.ready) {
-            this.prepareCanvas(particlesOptions);
+            this.prepareCanvas(particleSettings);
 
-            for (this.particlePointer = 0; this.particlePointer < this.particles.length; this.particlePointer += PARTICLE_PROPS) {
+            for (this.particlePointer = 0; this.particlePointer < this.particles.length; this.particlePointer += particleSettings.particleProps) {
               this.drawCurrentParticle();
             }
 
             this.enchancedRendering.ready = false;
             this.enchancedRendering.lastUpdated = 0;
           } else {
-            for (this.particlePointer = this.enchancedRendering.lastUpdated; this.particlePointer < (this.particlePointer === 0 ? this.enchancedRendering.half : this.particles.length); this.enchancedRendering.lastUpdated += PARTICLE_PROPS, this.particlePointer += PARTICLE_PROPS) {
-              this.updateCurrentParticle(particlesOptions);
+            for (this.particlePointer = this.enchancedRendering.lastUpdated; this.particlePointer < (this.particlePointer === 0 ? this.enchancedRendering.half : this.particles.length); this.enchancedRendering.lastUpdated += particleSettings.particleProps, this.particlePointer += particleSettings.particleProps) {
+              this.updateCurrentParticle(particleSettings);
             }
 
             if (this.enchancedRendering.lastUpdated === this.particles.length) {
@@ -280,10 +405,10 @@ window.onload = function () {
             }
           }
         } else {
-          this.prepareCanvas(particlesOptions);
+          this.prepareCanvas(particleSettings);
 
-          for (this.particlePointer = 0; this.particlePointer < this.particles.length; this.particlePointer += PARTICLE_PROPS) {
-            this.updateCurrentParticle(particlesOptions);
+          for (this.particlePointer = 0; this.particlePointer < this.particles.length; this.particlePointer += particleSettings.particleProps) {
+            this.updateCurrentParticle(particleSettings);
             this.drawCurrentParticle();
           }
         }
@@ -294,7 +419,7 @@ window.onload = function () {
         this.context.canvas.width = this.canvas.width = this.parent.offsetWidth;
         this.context.canvas.height = this.canvas.height = this.parent.offsetHeight;
         this.text.resize(this.canvas);
-        this.particles = getParticlesFromImage(this.text.image, this.defaults.particles);
+        this.particles = getParticlesFromImage(this.text.image, this.settings.particles);
       } //function to kick the animation off
 
     }]);
@@ -396,99 +521,10 @@ window.onload = function () {
     }]);
 
     return Text;
-  }(); //create a canvas with the same size of a given one and return its context
-
-
-  function createCanvasFrom(canvas) {
-    var referenceCanvas = document.createElement('canvas');
-    var $referenceCanvas = referenceCanvas.getContext('2d');
-    $referenceCanvas.canvas.width = referenceCanvas.width = canvas.width;
-    $referenceCanvas.canvas.height = referenceCanvas.height = canvas.height;
-    return $referenceCanvas;
-  } //create a new canvas fitting it inside a parent container specified by the user
-
-
-  function createFitCanvas(element) {
-    var canvas = document.createElement('canvas');
-    var $canvas = canvas.getContext('2d');
-    $canvas.canvas.width = canvas.width = element.offsetWidth;
-    $canvas.canvas.height = canvas.height = element.offsetHeight;
-    canvas.style.position = 'absolute'; //so it fits snuggly in its container
-
-    element.append(canvas);
-    return canvas;
-  } //get active pixels from the canvas we are rendering the text to
-
-
-  function getAlphaPixelsFromImage(imageData) {
-    var step = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 2;
-    var alphaPixels = [];
-
-    for (var i = 0, counter = 0; i < imageData.data.length; i++) {
-      if (imageData.data[i]) {
-        counter++;
-
-        if ((i - 3) % 4 === 0 && counter % step === 0 && Math.random() > 0.5) {
-          alphaPixels.push({
-            r: imageData.data[i - 3],
-            g: imageData.data[i - 2],
-            b: imageData.data[i - 1],
-            alpha: imageData.data[i],
-            pixelIndex: (i - 3) / 4
-          });
-        }
-      }
-    }
-
-    return alphaPixels;
-  } //get an array of Floats containing the particle data we are etracting from our render text
-
-
-  function getParticlesFromImage(imageData, _ref3) {
-    var particleMaxRadius = _ref3.particleMaxRadius,
-        pointSpacing = _ref3.pointSpacing,
-        palette = _ref3.palette;
-    var alphaPixels = getAlphaPixelsFromImage(imageData, pointSpacing);
-    var particlesArray = new Float32Array(alphaPixels.length * PARTICLE_PROPS);
-
-    for (var i = 0, particlePointer = 0, x = undefined, y = undefined, color = undefined; i < alphaPixels.length; i++) {
-      if (palette) {
-        color = chooseRandomFrom(palette);
-      }
-
-      x = alphaPixels[i].pixelIndex % imageData.width;
-      y = alphaPixels[i].pixelIndex / imageData.width;
-      particlePointer = i * PARTICLE_PROPS;
-      particlesArray[particlePointer++] = x; //position.x ========= +0 (aka particlePointer's current value, aka a particle's address in memory)
-
-      particlesArray[particlePointer++] = y; //position.y ========= +1
-
-      particlesArray[particlePointer++] = x; //targetPosition.x === +2
-
-      particlesArray[particlePointer++] = y; //targetPosition.y === +3
-
-      particlesArray[particlePointer++] = randomInRange(0, 1000); //particle.rotationProgress.x ====== +4
-
-      particlesArray[particlePointer++] = randomInRange(0, 1000); //particle.rotationProgress.y ====== +5
-
-      particlesArray[particlePointer++] = randomInRange(-1, 1); //particle.direction.x ============= +6
-
-      particlesArray[particlePointer++] = randomInRange(-1, 1); //particle.direction.y ============= +7
-
-      particlesArray[particlePointer++] = randomInRange(0.5, particleMaxRadius); //particle.radius === +8
-      //colorRGBA values for each particle
-
-      particlesArray[particlePointer++] = palette ? color["r"] : alphaPixels[i].r; //particles's color's "red" channel ===== +9
-
-      particlesArray[particlePointer++] = palette ? color["g"] : alphaPixels[i].g; //particles's color's "green" channel === +10
-
-      particlesArray[particlePointer++] = palette ? color["b"] : alphaPixels[i].b; //particles's color's "blue" channel ==== +11
-
-      particlesArray[particlePointer] = alphaPixels[i].alpha; //particles's color's "alpha" channel ====================== +12
-    }
-
-    return particlesArray;
-  } //this will be the container for out particle animation
+  }(); //////////////////
+  // ALL THE REST //
+  //////////////////
+  //this will be the container for out particle animation
 
 
   var textContainer = document.getElementById('text-container'); //SUPER DUPA FLY!
@@ -499,8 +535,7 @@ window.onload = function () {
     particles: {
       enhancedRendering: true,
       pointSpacing: 3,
-      background: '#1e0052',
-      particleMaxRadius: 2,
+      particleMaxRadius: 1.4,
       revolutionRadius: 2,
       palette: [{
         r: 250,
@@ -524,18 +559,22 @@ window.onload = function () {
     text: {
       fontFamily: 'Rock Salt',
       padding: 20,
-      fontSize: 100,
-      lineHeight: 120
+      fontSize: 120,
+      lineHeight: 140
     }
-  }); //do the thing
+  });
+  var SUPADUPAGRADIENT = createSupaDupaGradient(T.context);
+  T.setBackground(SUPADUPAGRADIENT); //do the thing
 
-  T.animate(); //resize literally everything
+  T.animate(); //resize literally everything & adapt gradient background
 
   window.addEventListener('resize', function () {
     T.resize();
+    SUPADUPAGRADIENT = createSupaDupaGradient(T.context);
+    T.setBackground(SUPADUPAGRADIENT);
   }); //log how many particles are buzzing around
 
-  console.log("Particles rendering: ".concat(T.particles.length / PARTICLE_PROPS));
+  console.log("Particles rendering: ".concat(T.particles.length / T.settings.particles.particleProps));
 };
 
 /***/ })
