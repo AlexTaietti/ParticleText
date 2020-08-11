@@ -1,8 +1,7 @@
 {
-  "name": "my_website",
+  "name": "ParticleText",
   "version": "1.0.0",
-  "description": "my pretty little website",
-  "main": "index.js",
+  "description": "SUPA DUPA FLY particle text",
   "scripts": {
     "serve": "gulp serve",
     "compile:all": "gulp style && gulp script && echo 'smooooooth'",
@@ -14,6 +13,8 @@
   "license": "ISC",
   "devDependencies": {
     "@babel/cli": "^7.10.5",
+    "@babel/core": "^7.11.1",
+    "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/plugin-transform-destructuring": "^7.10.4",
     "@babel/preset-env": "^7.11.0",
     "browser-sync": "^2.26.12",
@@ -23,8 +24,4 @@
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12"
   },
-  "dependencies": {
-    "@babel/core": "^7.11.0",
-    "@babel/plugin-proposal-class-properties": "^7.10.4"
-  }
 }

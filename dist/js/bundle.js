@@ -309,7 +309,7 @@ window.onload = function () {
 
       this.settings.particles.particleProps = _particleProps; //reference to the parent element of the rendering canvas
 
-      this.parent = element; //the actual canvas element we are using to display the animation on the pahe
+      this.parent = element; //the actual canvas element we are using to display the animation on the page
 
       this.canvas = canvas; //get the rendering context for our super dupa fly particles!
 
@@ -330,7 +330,7 @@ window.onload = function () {
       if (this.enhancedRendering) console.log('enhancedRendering is active'); //will hold the ID frame
 
       this.frameID = undefined;
-    } //change the text's object string and refresh th particle array
+    } //change the text's object string and refresh the particle array
 
 
     _createClass(ParticleText, [{
@@ -361,7 +361,7 @@ window.onload = function () {
         this.context.beginPath();
         this.context.arc(this.particles[this.particlePointer], this.particles[this.particlePointer + 1], this.particles[this.particlePointer + 8], 0, PI2);
         this.context.fill();
-      } //get canvas ready for a repaintby either clearing it or drawing a background on top of it, up to you
+      } //get canvas ready for a repaint by either clearing it or drawing a background on top of it, up to you
 
     }, {
       key: "prepareCanvas",
@@ -420,7 +420,7 @@ window.onload = function () {
         this.context.canvas.height = this.canvas.height = this.parent.offsetHeight;
         this.text.resize(this.canvas);
         this.particles = getParticlesFromImage(this.text.image, this.settings.particles);
-      } //function to kick the animation off
+      } //function to kick off the animation
 
     }]);
 
@@ -524,19 +524,20 @@ window.onload = function () {
   }(); //////////////////
   // ALL THE REST //
   //////////////////
-  //this will be the container for out particle animation
+  //this will be the container for our particle animation
 
 
   var textContainer = document.getElementById('text-container'); //SUPER DUPA FLY!
 
-  var STRING = "Supa Dupa Fly!"; //create the thingy (play around with the settings if you have a minute, it's quite fun!)
+  var STRING = "Supa Dupa Fly!"; //create the particle text (play around with the settings if you have a minute, it's quite fun!)
+  //I'll throw this on GitHub too, if anyone wants to fork it. Cheers!
 
   var T = new ParticleText(STRING, textContainer, {
     particles: {
       enhancedRendering: true,
-      pointSpacing: 3,
-      particleMaxRadius: 1.4,
-      revolutionRadius: 2,
+      pointSpacing: 5,
+      particleMaxRadius: 2.5,
+      revolutionRadius: 3,
       palette: [{
         r: 250,
         g: 0,
@@ -559,8 +560,8 @@ window.onload = function () {
     text: {
       fontFamily: 'Rock Salt',
       padding: 20,
-      fontSize: 120,
-      lineHeight: 140
+      fontSize: 130,
+      lineHeight: 150
     }
   });
   var SUPADUPAGRADIENT = createSupaDupaGradient(T.context);

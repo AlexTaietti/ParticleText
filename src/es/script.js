@@ -225,7 +225,7 @@ window.onload = function () {
 			//reference to the parent element of the rendering canvas
 			this.parent = element;
 
-			//the actual canvas element we are using to display the animation on the pahe
+			//the actual canvas element we are using to display the animation on the page
 			this.canvas = canvas;
 
 			//get the rendering context for our super dupa fly particles!
@@ -258,7 +258,7 @@ window.onload = function () {
 		}
 
 
-		//change the text's object string and refresh th particle array
+		//change the text's object string and refresh the particle array
 		updateText (string) {
 			this.text.update(string);
 			this.particles = getParticlesFromImage(this.text.image, this.settings.particles);
@@ -286,7 +286,7 @@ window.onload = function () {
 		}
 
 
-		//get canvas ready for a repaintby either clearing it or drawing a background on top of it, up to you
+		//get canvas ready for a repaint by either clearing it or drawing a background on top of it, up to you
 		prepareCanvas ({background}) {
 
 			if(background){
@@ -355,7 +355,7 @@ window.onload = function () {
 		}
 
 
-		//function to kick the animation off
+		//function to kick off the animation
 		animate = () => {
 			this.renderParticles(this.settings.particles);
 			this.frameID = window.requestAnimationFrame(this.animate);
@@ -475,21 +475,22 @@ window.onload = function () {
 	// ALL THE REST //
 	//////////////////
 
-	//this will be the container for out particle animation
+	//this will be the container for our particle animation
 	const textContainer = document.getElementById('text-container');
 
 	//SUPER DUPA FLY!
 	const STRING = "Supa Dupa Fly!";
 
-	//create the thingy (play around with the settings if you have a minute, it's quite fun!)
+	//create the particle text (play around with the settings if you have a minute, it's quite fun!)
+	//I'll throw this on GitHub too, if anyone wants to fork it. Cheers!
 	const T = new ParticleText(STRING, textContainer, {
 
 		particles: {
 
 			enhancedRendering: true,
-			pointSpacing: 3,
-			particleMaxRadius: 1.4,
-			revolutionRadius: 2,
+			pointSpacing: 5,
+			particleMaxRadius: 2.5,
+			revolutionRadius: 3,
 			palette: [{r: 250, g: 0, b: 0}, { r: 245, g: 232, b: 47 }, { r: 166, g: 230, b: 48 }, { r: 76, g: 184, b: 245 }] // <---- these colors are defo SUPA DUPA FLY!
 
 		},
@@ -498,8 +499,8 @@ window.onload = function () {
 
 			fontFamily: 'Rock Salt',
 			padding: 20,
-			fontSize: 120,
-			lineHeight: 140
+			fontSize: 130,
+			lineHeight: 150
 
 		}
 
