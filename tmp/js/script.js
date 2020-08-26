@@ -192,7 +192,7 @@ window.onload = function () {
           //particle shape
           pointSpacing: 5,
           particleMaxRadius: 2,
-          palette: [],
+          palette: undefined,
           //particle motion
           revolutionRadius: 2,
           revolutionSlowness: 5,
