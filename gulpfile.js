@@ -16,24 +16,17 @@ function script () {
 
 	return gulp.src('./src/es/*.js')
 		.pipe(babel({ plugins: ['@babel/plugin-proposal-class-properties', '@babel/plugin-transform-destructuring'], presets: ['@babel/env'] }))
-		.pipe(gulp.dest('./tmp/js'));
+		.pipe(gulp.dest('./dist/js'))
+		.pipe(BS.stream());
 
 }
 
 gulp.task('serve', function (){
 
-	BS.init({
-
-		server: {
-			baseDir: './dist/',
-			index: 'index.html'
-		}
-
-	});
+	BS.init({ server: './dist/' });
 
 	gulp.watch('./src/scss/*.scss', style);
 	gulp.watch('./src/es/*.js', script);
-	gulp.watch('./dist/js/*.js').on('change', BS.reload);
 	gulp.watch('./dist/index.html').on('change', BS.reload);
 
 });

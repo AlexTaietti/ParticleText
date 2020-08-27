@@ -6,13 +6,11 @@
     "serve": "gulp serve",
     "compile:all": "gulp style && gulp script && echo 'smooooooth'",
     "compile:scss": "gulp style",
-    "compile:es": "gulp script",
-    "bundle:script": "webpack --config webpack.config.js"
+    "compile:es": "gulp script"
   },
   "author": "Alex Taietti",
   "license": "ISC",
   "devDependencies": {
-    "@babel/cli": "^7.10.5",
     "@babel/core": "^7.11.1",
     "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/plugin-transform-destructuring": "^7.10.4",
@@ -20,8 +18,6 @@
     "browser-sync": "^2.26.12",
     "gulp": "^4.0.2",
     "gulp-babel": "^8.0.0",
-    "gulp-sass": "^4.1.0",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "gulp-sass": "^4.1.0"
   }
 }

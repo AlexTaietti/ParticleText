@@ -34,7 +34,7 @@ window.onload = function () {
 
 		for(let prop in object){
 			if(target.hasOwnProperty(prop)){
-				if(typeof object[prop] === 'object' && deep){
+				if(target[prop] && typeof object[prop] === 'object' && deep){
 					target[prop] = mergeObjects(target[prop], object[prop], true);
 				} else {
 					target[prop] = object[prop];
